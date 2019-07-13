@@ -25,19 +25,27 @@ function getXMLData(path, xmlFilename) {
   });
 }
 
-/**
- * Extracts the text from your Office file.
- * 
- * @param {String} path Path to the file you want to extract the text from.
- * @param {String} [xmlFilename='document'] Optional argument used to specify
- * the XML component of the file from which to extract the text (default is: 'document').
- */
-module.exports.extractText = (path, xmlFilename = 'document') => {
+function extractParagraphs(path, xmlFilename = 'document') {
   return getXMLData(path, xmlFilename).then((xml) => {
-    let paragraph, text = '';
-    while (paragraph = paragraphRegex.exec(xml)) {
-      text += paragraph[0].replace(tabRegex, tab).replace(tagRegex, empty) + cr;
+    let paragraph, paragraphs = [];
+    while ((paragraph = paragraphRegex.exec(xml)) !== null) {
+      paragraphs.push(paragraph[0].replace(tabRegex, tab).replace(tagRegex, empty).trim());
     }
-    return text;
+    return paragraphs.filter(p => p);
   });
 }
+
+
+module.exports = {
+  /**
+   * Extracts the text from your Office file.
+   *
+   * @param {String} path Path to the file you want to extract the text from.
+   * @param {String} [xmlFilename='document'] Optional argument used to specify
+   * the XML component of the file from which to extract the text (default is: 'document').
+   */
+  extractText: (path, xmlFilename = 'document') => {
+    return extractParagraphs.then(paras => paras.join(cr));
+  },
+  extractParagraphs: extractParagraphs
+};
